@@ -1,0 +1,10 @@
+{
+  "name": "Ich liebe Techno",
+  "short_name": "Techno",
+  "description": "Dunkler Radio-Player von The Art of Techno.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "lang": "de"
+}

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a0a0a">
+  <meta name="description" content="Ich liebe Techno. Dunkler Radio-Player von The Art of Techno.">
+  <title>Ich liebe Techno</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --panel: #141414;
+      --line: #2a2a2a;
+      --text: #f2f2f2;
+      --muted: #8a8a8a;
+      --red: #9b1b2e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.45 ui-sans-serif, system-ui, sans-serif;
+    }
+    main {
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 28px 18px 40px;
+    }
+    p.brand {
+      margin: 0;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      font-size: 11px;
+      color: var(--red);
+    }
+    h1 {
+      margin: 8px 0 4px;
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+    .sub { color: var(--muted); margin: 0 0 22px; }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      padding: 16px;
+    }
+    .now {
+      min-height: 48px;
+      margin-bottom: 14px;
+    }
+    .now strong { display: block; font-size: 18px; }
+    .now span { color: var(--muted); font-size: 13px; }
+    button, select {
+      font: inherit;
+      color: var(--text);
+      background: #000;
+      border: 1px solid var(--line);
+    }
+    button.play {
+      width: 100%;
+      padding: 14px;
+      background: var(--red);
+      border: 0;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    select, input[type="range"] { width: 100%; margin-top: 12px; }
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 22px 0 0;
+    }
+    li {
+      border-top: 1px solid var(--line);
+      padding: 10px 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    li b { color: var(--text); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="brand">The Art of Techno</p>
+    <h1>Ich liebe Techno</h1>
+    <p class="sub">Player. Kein Feed, kein Account, kein Quatsch.</p>
+    <div class="panel">
+      <div class="now">
+        <strong id="title">Bereit</strong>
+        <span id="meta">Sender wählen, Play drücken.</span>
+      </div>
+      <button class="play" id="play" type="button">Play</button>
+      <select id="station" aria-label="Sender"></select>
+      <input id="vol" type="range" min="0" max="1" step="0.01" value="0.8" aria-label="Lautstärke">
+    </div>
+    <ul>
+      <li><b>Demo-Stream</b> SomaFM Cliqhop, damit der Knopf nicht tot ist.</li>
+      <li><b>Eigener Stream</b> URL in <b>stations</b> in dieser Datei tauschen.</li>
+      <li><b>PWA</b> Manifest liegt bei. Icons und Pages fehlen noch.</li>
+    </ul>
+  </main>
+  <audio id="audio" preload="none"></audio>
+  <script>
+    const stations = [
+      {
+        name: "Cliqhop (SomaFM)",
+        note: "Demo. Electronic, legal, öffentlich.",
+        url: "https://ice1.somafm.com/cliqhop-128-mp3"
+      },
+      {
+        name: "Eigener Stream",
+        note: "URL hier einsetzen.",
+        url: ""
+      }
+    ];
+
+    const audio = document.getElementById("audio");
+    const play = document.getElementById("play");
+    const select = document.getElementById("station");
+    const title = document.getElementById("title");
+    const meta = document.getElementById("meta");
+    const vol = document.getElementById("vol");
+
+    stations.forEach((s, i) => {
+      const o = document.createElement("option");
+      o.value = String(i);
+      o.textContent = s.name;
+      select.appendChild(o);
+    });
+
+    audio.volume = Number(vol.value);
+
+    function current() {
+      return stations[Number(select.value)];
+    }
+
+    function showIdle() {
+      const s = current();
+      title.textContent = s.name;
+      meta.textContent = s.url ? s.note : "Keine URL. In index.html eintragen.";
+    }
+
+    select.addEventListener("change", () => {
+      const wasPlaying = !audio.paused;
+      audio.pause();
+      audio.removeAttribute("src");
+      play.textContent = "Play";
+      showIdle();
+      if (wasPlaying) start();
+    });
+
+    vol.addEventListener("input", () => {
+      audio.volume = Number(vol.value);
+    });
+
+    function start() {
+      const s = current();
+      if (!s.url) {
+        meta.textContent = "Keine URL. In index.html eintragen.";
+        return;
+      }
+      audio.src = s.url;
+      audio.play().then(() => {
+        play.textContent = "Pause";
+        title.textContent = s.name;
+        meta.textContent = "Läuft.";
+      }).catch(() => {
+        meta.textContent = "Stream blockiert oder tot. URL prüfen.";
+      });
+    }
+
+    play.addEventListener("click", () => {
+      if (!audio.paused) {
+        audio.pause();
+        play.textContent = "Play";
+        meta.textContent = "Pause.";
+        return;
+      }
+      start();
+    });
+
+    showIdle();
+  </script>
+</body>
+</html>
